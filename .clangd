@@ -1,0 +1,2 @@
+CompileFlags:
+    Add: [-nostdlib, -std=c++20, -Wno-int-to-pointer-cast]

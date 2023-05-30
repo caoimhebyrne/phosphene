@@ -1,0 +1,7 @@
+---
+Language: Cpp
+BasedOnStyle: WebKit
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterFunction: true
+NamespaceIndentation: None
