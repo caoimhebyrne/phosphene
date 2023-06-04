@@ -72,10 +72,7 @@ const char* u32_to_string(u32 value, char* output, u32 buffer_size)
     // 0 will always be 0.
     // We also have to special case this due to the while statement below...
     if (value == 0) {
-        output[0] = '0';
-        output[1] = '\0';
-
-        return &output[1];
+        return "0";
     }
 
     auto index = buffer_size - 1;
@@ -239,4 +236,5 @@ void UART::wait_until_ready_for_writing()
     while (MMIO::instance().read(Register::Flag) & Flag::TransmitFIFOFull) {
     }
 }
+
 }
