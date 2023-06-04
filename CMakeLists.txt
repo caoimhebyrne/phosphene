@@ -26,6 +26,8 @@ set(SOURCES
 
 # Without this anything with static variables will fail to compile
 set(LIMITED_SOURCES
+    src/kernel/MemoryManagement.cpp
+
     src/kernel/io/MMIO.cpp
     src/kernel/io/UART.cpp
 )
