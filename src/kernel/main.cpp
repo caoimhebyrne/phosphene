@@ -1,3 +1,4 @@
+#include "Kernel.h"
 #include "MemoryManagement.h"
 #include "asm/CurrentELRegister.h"
 #include "asm/MainIdRegister.h"
@@ -35,38 +36,51 @@ void main()
 
     uart.println("[main] Running on exception level {i}", exception_level);
 
-    uart.println("[main] Running malloc testing...");
-
-    auto address_a = MemoryManagement::instance().allocate(sizeof(int));
-    uart.println("[main] Allocated for `address_a` at {#}", address_a);
-
-    auto write_a = (int*)address_a;
-    *write_a = 4;
-
-    uart.println("[main]   -> Setting {#} = {i}", address_a, *(int*)address_a);
-
-    auto address_b = MemoryManagement::instance().allocate(sizeof(int));
-    uart.println("[main] Allocated for `address_b` at {#}", address_b);
-
-    auto write_b = (int*)address_b;
-    *write_b = 69;
-
-    uart.println("[main]   -> Setting {#} = {i}", address_b, *(int*)address_b);
-
-    auto valid = *(int*)address_a == 4 && *(int*)address_b == 69;
-    if (!valid) {
-        uart.println("ERROR: Expected values were not in {#} or {#}!", address_a, address_b);
-        return;
-    }
-
-    uart.println("[main] {#} = {i}, {#} = {i}", address_a, *(int*)address_a, address_b, *(int*)address_b);
-
-    uart.println("[main] Malloc testing succeeded!");
+    test_memory_management();
 
     uart.println("[main] Halting!");
 
     while (true) {
     }
+}
+
+void test_memory_management()
+{
+    auto uart = UART::instance();
+
+    auto expected_a_value = 4;
+    auto expected_b_value = 69;
+
+    uart.println("[test_memory_management] Checking if `allocate` works...");
+
+    auto address_a = MemoryManagement::instance().allocate(sizeof(int));
+    uart.println("[test_memory_management] Allocated for `address_a` at {#}", address_a);
+
+    auto write_a = (int*)address_a;
+    *write_a = expected_a_value;
+
+    uart.println("[test_memory_management]   -> Setting {#} = {i}", address_a, expected_a_value);
+
+    auto address_b = MemoryManagement::instance().allocate(sizeof(int));
+    uart.println("[test_memory_management] Allocated for `address_b` at {#}", address_b);
+
+    auto write_b = (int*)address_b;
+    *write_b = expected_b_value;
+
+    uart.println("[test_memory_management]   -> Setting {#} = {i}", address_b, expected_b_value);
+
+    uart.println("[test_memory_management] Values: {#} = {i}, {#} = {i}", address_a, *(int*)address_a, address_b, *(int*)address_b);
+
+    auto valid = *(int*)address_a == expected_a_value && *(int*)address_b == expected_b_value;
+    if (!valid) {
+        uart.println("[test_memory_management] ERROR: Expected values were not in {#} or {#}!", address_a, address_b);
+        uart.println("                         * {#} should have been {i}, and was {i}", address_a, expected_a_value, *(int*)address_a);
+        uart.println("                         * {#} should have been {i}, and was {i}", address_b, expected_b_value, *(int*)address_b);
+
+        return;
+    }
+
+    uart.println("[test_memory_management] It appears that `allocate` is working as expected!");
 }
 
 }
