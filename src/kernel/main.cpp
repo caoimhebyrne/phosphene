@@ -9,7 +9,7 @@ namespace Kernel {
 void main()
 {
     auto uart = UART::instance();
-    uart.println("[main] Starting...");
+    uart.println("[main] \"No heaven without hell beneath, in misery without you and me\"");
 
     // Print out which Raspberry PI board we are on.
     MainIdRegister id_register;
