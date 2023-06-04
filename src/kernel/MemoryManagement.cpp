@@ -15,7 +15,13 @@ MemoryManagement& MemoryManagement::instance()
 
 void* MemoryManagement::allocate(size_t size)
 {
-    auto region = this->find_next_free_region(size);
+    auto existing_region = this->find_next_free_region(size);
+    if (existing_region != nullptr) {
+        UART::instance().println("[MemoryManagement] Reused {i} bytes. ({#} -> {#})", existing_region->size, existing_region->start, (u8*)existing_region->start + existing_region->size);
+        return existing_region->start;
+    }
+
+    auto region = this->allocate_new_region(size);
     region.is_free = false;
 
     UART::instance().println("[MemoryManagement] Allocated {i} bytes. ({#} -> {#})", region.size, region.start, (u8*)region.start + region.size);
@@ -49,7 +55,7 @@ void MemoryManagement::free(void* pointer)
     }
 }
 
-Region MemoryManagement::find_next_free_region(size_t size)
+Region MemoryManagement::allocate_new_region(size_t size)
 {
     // This has gotten quite messy, and there's a bit of alignment and stuff involved,
     // but hey, it works!
@@ -76,6 +82,7 @@ Region MemoryManagement::find_next_free_region(size_t size)
     auto aligned_start = align(start_position);
     auto region = Region {
         .start = (u8*)aligned_start + sizeof(Region),
+        .next = nullptr,
         // FIXME: Why wasn't region.end working here?
         // .end = .start + size
         .size = size,
@@ -84,7 +91,44 @@ Region MemoryManagement::find_next_free_region(size_t size)
 
     *(Region*)aligned_start = region;
     m_last_allocated_region = region;
+
+    if (m_first_region != nullptr) {
+        m_first_region->next = (Region*)aligned_start;
+    }
+
+    m_first_region = (Region*)aligned_start;
     return region;
+}
+
+Region* MemoryManagement::find_next_free_region(size_t size)
+{
+    if (m_first_region == nullptr) {
+        UART::instance().println("[MemoryManagement] Failed to find existing region to adopt as m_first_region was null!");
+        return nullptr;
+    }
+
+    for (auto region = m_first_region; region != nullptr; region = region->next) {
+        if (!region->is_free) {
+            continue;
+        }
+
+        UART::instance().println("[MemoryManagement] Checking if the region is suitable: \\{ start = {#}, next = {#}, size = {i}, is_free = {b} \\}", region->start, region->next, region->size, region->is_free);
+
+        // If this region is too small, we can't use it for anything.
+        if (region->size < size) {
+            continue;
+        }
+
+        // If the region is the same size as our requirement, we can just adopt it!
+        if (region->size == size) {
+            region->is_free = false;
+            return region;
+        }
+
+        Processor::panic("FIXME: Re-using larger regions by shrinking them has not been implemented yet.");
+    }
+
+    return nullptr;
 }
 
 }

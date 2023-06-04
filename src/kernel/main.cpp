@@ -94,6 +94,41 @@ void test_memory_management()
     }
 
     uart.println("[test_memory_management] It appears that `free` works as expected!");
+
+    uart.println("[test_memory_management] Checking if `free`ing an address and then `malloc`ing of the same size causes the old region to be re-used...");
+
+    auto verification_address = MemoryManagement::instance().allocate(sizeof(int));
+    uart.println("[test_memory_management] Allocated {i} bytes for verification_address at {#}.", sizeof(int), verification_address);
+
+    // Make sure that this doesn't get affected.
+    *(int*)verification_address = 0x69;
+    uart.println("[test_memory_management]    -> Setting {#} = {i}", verification_address, 0x69);
+
+    auto temporary_address = MemoryManagement::instance().allocate(sizeof(int));
+    uart.println("[test_memory_management] Allocated {i} bytes for temporary_address at {#}.", sizeof(int), temporary_address);
+
+    // This is just to make sure that the free works correctly
+    *(int*)temporary_address = 0x420;
+    uart.println("[test_memory_management]    -> Setting {#} = {i}", temporary_address, 0x420);
+
+    uart.println("[test_memory_management] Freeing temporary_address ({#})...", temporary_address);
+
+    auto old_address = temporary_address;
+    MemoryManagement::instance().free(temporary_address);
+
+    // Try allocating another integer region
+    uart.println("[test_memory_management] Allocating {i} bytes for final_address...", sizeof(int));
+    auto final_address = MemoryManagement::instance().allocate(sizeof(int));
+    if (final_address != old_address) {
+        Processor::panic("Reallocation of same-sized-address didn't fill free slot!");
+    }
+
+    uart.println("[test_memory_management] Freeing {i} bytes caused {#} to be re-used after a free! Woohoo!", sizeof(int), final_address);
+
+    auto big_address = MemoryManagement::instance().allocate(512);
+    MemoryManagement::instance().free(big_address);
+
+    auto next_address = MemoryManagement::instance().allocate(16);
 }
 
 void test_random_number_generation()
