@@ -25,6 +25,14 @@ private:
     {
     }
 
+    void* align(void* pointer)
+    {
+        auto address = (uintptr_t)pointer;
+        auto alignment = 8;
+
+        return (void*)((address + alignment - 1) & ~(alignment - 1));
+    }
+
     Region find_next_free_region(size_t size);
 
     bool is_region_invalid(Region region);
