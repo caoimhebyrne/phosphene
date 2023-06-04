@@ -24,15 +24,7 @@ set(SOURCES
     src/boot/boot.S
 )
 
-# Without this anything with static variables will fail to compile
-set(LIMITED_SOURCES
-    src/kernel/MemoryManagement.cpp
-
-    src/kernel/io/MMIO.cpp
-    src/kernel/io/UART.cpp
-)
-set_source_files_properties(${LIMITED_SOURCES} PROPERTIES COMPILE_FLAGS  "-Wno-int-to-pointer-cast -fno-threadsafe-statics -fno-exceptions")
-
+set_source_files_properties(${SOURCES} PROPERTIES COMPILE_FLAGS  "-fno-rtti -Wno-int-to-pointer-cast -fno-threadsafe-statics -fno-exceptions")
 add_executable(phosphene ${SOURCES})
 target_link_options(phosphene PRIVATE LINKER:-T ${LINKER_SCRIPT} -nostdlib -nodefaultlibs)
 
