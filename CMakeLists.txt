@@ -24,7 +24,7 @@ set(SOURCES
     src/boot/boot.S
 )
 
-set_source_files_properties(${SOURCES} PROPERTIES COMPILE_FLAGS  "-fno-rtti -Wno-int-to-pointer-cast -fno-threadsafe-statics -fno-exceptions")
+set_source_files_properties(${SOURCES} PROPERTIES COMPILE_FLAGS  "-mstrict-align -fno-rtti -Wno-int-to-pointer-cast -fno-threadsafe-statics -fno-exceptions")
 add_executable(phosphene ${SOURCES})
 target_link_options(phosphene PRIVATE LINKER:-T ${LINKER_SCRIPT} -nostdlib -nodefaultlibs)
 
