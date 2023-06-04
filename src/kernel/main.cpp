@@ -1,6 +1,7 @@
 #include "../fluorescent/Fluorescent.h"
 #include "Kernel.h"
 #include "MemoryManagement.h"
+#include "Processor.h"
 #include "asm/CurrentELRegister.h"
 #include "asm/MainIdRegister.h"
 #include "io/UART.h"
@@ -40,10 +41,7 @@ void main()
     test_memory_management();
     test_random_number_generation();
 
-    uart.println("[main] Halting!");
-
-    while (true) {
-    }
+    Processor::panic("Reached end of init!");
 }
 
 void test_memory_management()
