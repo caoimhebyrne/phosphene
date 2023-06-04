@@ -77,6 +77,24 @@ void test_memory_management()
     }
 
     uart.println("[test_memory_management] It appears that `allocate` is working as expected!");
+
+    uart.println("[test_memory_management] Checking if `free` works...");
+
+    uart.println("[test_memory_management] Freeing address_a ({#})...", address_a);
+    MemoryManagement::instance().free(address_a);
+
+    uart.println("[test_memory_management] Values: {#} = {i}, {#} = {i}", address_a, *(int*)address_a, address_b, *(int*)address_b);
+
+    auto free_valid = *(int*)address_a != expected_a_value && *(int*)address_b == expected_b_value;
+    if (!valid) {
+        uart.println("[test_memory_management] ERROR: Expected values were not in {#} or {#}!", address_a, address_b);
+        uart.println("                         * {#} should not have been {i}", address_a, expected_a_value);
+        uart.println("                         * {#} should have been {i}, and was {i}", address_b, expected_b_value, *(int*)address_b);
+
+        return;
+    }
+
+    uart.println("[test_memory_management] It appears that `free` works as expected!");
 }
 
 void test_random_number_generation()
