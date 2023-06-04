@@ -93,6 +93,24 @@ const char* u32_to_string(u32 value, char* output, u32 buffer_size)
     return &output[index + 1];
 }
 
+const char* u32_to_hex_string(u32 value, char* output, u32 buffer_size)
+{
+    char hexidecimal_characters[] = "0123456789ABCDEF";
+
+    auto base = 16;
+    auto index = buffer_size - 1;
+    output[index--] = 0;
+
+    while (value > 0) {
+        auto remainder = value % base;
+        output[index--] = hexidecimal_characters[remainder];
+
+        value = value / base;
+    }
+
+    return &output[index + 1];
+}
+
 void UART::print_raw(const char* string)
 {
     for (auto i = 0; string[i] != '\0'; i++) {
@@ -127,6 +145,18 @@ void UART::print(const char* string, va_list arguments)
 
                 char output[11];
                 this->print_raw(u32_to_string(value, output, 11));
+
+                break;
+            }
+
+            // Integer types printed as hexidecimal
+            case '#': {
+                auto value = va_arg(arguments, u32);
+
+                this->print_raw("0x");
+
+                char output[16];
+                this->print_raw(u32_to_hex_string(value, output, 16));
 
                 break;
             }
