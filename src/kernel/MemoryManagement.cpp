@@ -51,3 +51,8 @@ Region MemoryManagement::find_next_free_region(size_t size)
 }
 
 }
+
+void* operator new(size_t size)
+{
+    return Kernel::MemoryManagement::instance().allocate(size);
+}
