@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../fluorescent/Optional.h"
 #include "../types/integer.h"
 
 namespace Kernel {
@@ -21,7 +22,6 @@ public:
 
 private:
     MemoryManagement()
-        : m_last_allocated_region({ .start = nullptr, .end = nullptr, .size = 0, .is_free = false })
     {
     }
 
@@ -29,7 +29,7 @@ private:
 
     bool is_region_invalid(Region region);
 
-    Region m_last_allocated_region;
+    Optional<Region> m_last_allocated_region {};
 };
 
 }

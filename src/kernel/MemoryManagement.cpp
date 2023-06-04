@@ -21,8 +21,7 @@ void* MemoryManagement::allocate(size_t size)
 
 Region MemoryManagement::find_next_free_region(size_t size)
 {
-    // If the last region was invalid...
-    if (m_last_allocated_region.end == nullptr) {
+    if (!m_last_allocated_region) {
         UART::instance().println("[MemoryManagement] Last region was invalid! Starting at the beginning...");
 
         // TODO: Find a better starting address
@@ -37,7 +36,9 @@ Region MemoryManagement::find_next_free_region(size_t size)
         return region;
     }
 
-    auto last_end = ((int*)m_last_allocated_region.end);
+    auto last_region = m_last_allocated_region.get();
+    auto last_end = ((int*)last_region.end);
+
     auto region = Region {
         .start = last_end,
         .end = last_end + size,
