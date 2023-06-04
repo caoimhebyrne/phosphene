@@ -121,6 +121,13 @@ void UART::print(const char* string, va_list arguments)
     for (auto i = 0; string[i] != '\0'; i++) {
         auto character = string[i];
 
+        if (character == '\\') {
+            this->write(string[i + 1]);
+            i++;
+            
+            continue;
+        }
+
         // If the character was an opening brace, we have started to parse an argument
         if (character == '{') {
             continue;
@@ -236,5 +243,4 @@ void UART::wait_until_ready_for_writing()
     while (MMIO::instance().read(Register::Flag) & Flag::TransmitFIFOFull) {
     }
 }
-
 }
