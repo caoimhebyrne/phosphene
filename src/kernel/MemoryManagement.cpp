@@ -20,7 +20,7 @@ void* MemoryManagement::allocate(size_t size)
 
     UART::instance().println("[MemoryManagement] Allocated {i} bytes. ({#} -> {#})", region.size, region.start, region.end);
 
-    return region.end;
+    return region.start;
 }
 
 Region MemoryManagement::find_next_free_region(size_t size)
