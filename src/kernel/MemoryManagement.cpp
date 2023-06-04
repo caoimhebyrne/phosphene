@@ -93,3 +93,8 @@ void* operator new(size_t size)
 {
     return Kernel::MemoryManagement::instance().allocate(size);
 }
+
+void operator delete(void* pointer) noexcept
+{
+    return Kernel::MemoryManagement::instance().free(pointer);
+}
