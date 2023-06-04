@@ -7,10 +7,7 @@ namespace Kernel {
 
 struct Region {
     void* start;
-    void* end;
-
     size_t size;
-
     bool is_free;
 };
 
@@ -19,6 +16,7 @@ public:
     static MemoryManagement& instance();
 
     void* allocate(size_t size);
+    void free(void* pointer);
 
 private:
     MemoryManagement()

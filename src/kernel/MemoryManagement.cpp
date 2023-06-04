@@ -18,9 +18,35 @@ void* MemoryManagement::allocate(size_t size)
     auto region = this->find_next_free_region(size);
     region.is_free = false;
 
-    UART::instance().println("[MemoryManagement] Allocated {i} bytes. ({#} -> {#})", region.size, region.start, region.end);
+    UART::instance().println("[MemoryManagement] Allocated {i} bytes. ({#} -> {#})", region.size, region.start, (u8*)region.start + region.size);
 
     return region.start;
+}
+
+// Our memory management approach has a pretty big issue at the moment...
+// We don't fill the gaps of memory that has been free()'d, meaning that we will just exponentially grow,
+// meaning that free() has no real benefits apart from scrubbing out sensitive data.
+void MemoryManagement::free(void* pointer)
+{
+    if (pointer == nullptr) {
+        return;
+    }
+
+    auto region_pointer = (u8*)pointer - sizeof(Region);
+    auto region = (Region*)region_pointer;
+
+    // We don't do anything with invalid regions
+    if (region->start == nullptr || region->size == 0 || region->is_free) {
+        return;
+    }
+
+    // Mark the region as free
+    region->is_free = true;
+
+    // Scrub out the data
+    for (auto i = 0; i < region->size; i++) {
+        *((u8*)region->start + i) = 0;
+    }
 }
 
 Region MemoryManagement::find_next_free_region(size_t size)
@@ -31,7 +57,9 @@ Region MemoryManagement::find_next_free_region(size_t size)
     int* start_position = nullptr;
     if (m_last_allocated_region) {
         auto last_allocated_region = m_last_allocated_region.get();
-        start_position = (int*)last_allocated_region.end;
+
+        // FIXME: Why wasn't region.end working here?
+        start_position = (int*)last_allocated_region.start + sizeof(Region) + last_allocated_region.size;
     } else {
         UART::instance().println("[MemoryManagement] Last region was invalid! Starting from the end of the BSS.");
         start_position = (int*)&__bss_end;
@@ -47,12 +75,14 @@ Region MemoryManagement::find_next_free_region(size_t size)
 
     auto aligned_start = align(start_position);
     auto region = Region {
-        .start = aligned_start,
-        .end = (u8*)aligned_start + size,
+        .start = (u8*)aligned_start + sizeof(Region),
+        // FIXME: Why wasn't region.end working here?
+        // .end = .start + size
         .size = size,
         .is_free = false
     };
 
+    *(Region*)aligned_start = region;
     m_last_allocated_region = region;
     return region;
 }
