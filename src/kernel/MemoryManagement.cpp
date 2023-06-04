@@ -1,4 +1,5 @@
 #include "MemoryManagement.h"
+#include "Processor.h"
 #include "io/UART.h"
 
 // Defined in the linker script
@@ -37,13 +38,7 @@ Region MemoryManagement::find_next_free_region(size_t size)
     }
 
     if (start_position == nullptr) {
-        UART::instance().println("[MemoryManagement] ERROR: Failed to locate a valid start position!");
-
-        // TODO: We should introduce the concept of a panic...
-        while (true) {
-            asm volatile("wfi");
-        }
-
+        Processor::panic("MemoryManagement::find_next_free_region failed to locate a valid start position!");
         return {};
     }
 
