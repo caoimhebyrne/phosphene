@@ -1,5 +1,6 @@
 #include "Kernel.h"
 #include "MemoryManagement.h"
+#include "Random.h"
 #include "asm/CurrentELRegister.h"
 #include "asm/MainIdRegister.h"
 #include "io/UART.h"
@@ -37,6 +38,7 @@ void main()
     uart.println("[main] Running on exception level {i}", exception_level);
 
     test_memory_management();
+    test_random_number_generation();
 
     uart.println("[main] Halting!");
 
@@ -77,6 +79,26 @@ void test_memory_management()
     }
 
     uart.println("[test_memory_management] It appears that `allocate` is working as expected!");
+}
+
+void test_random_number_generation()
+{
+    auto uart = UART::instance();
+    uart.println("[test_random_number_generation] Checking if the random number generator works...");
+
+    auto random_number_a = Random::instance()->get();
+    uart.println("[test_random_number_generation] random_number_a = {i}", random_number_a);
+
+    auto random_number_b = Random::instance()->get();
+    uart.println("[test_random_number_generation] random_number_b = {i}", random_number_b);
+
+    if (random_number_a == random_number_b) {
+        uart.println("ERROR: Random number generator test failed. {i} = {i}!", random_number_a, random_number_b);
+
+        return;
+    }
+
+    uart.println("[test_random_number_generation] It appears that the random number generator is working as expected!");
 }
 
 }
