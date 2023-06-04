@@ -1,7 +1,3 @@
 #pragma once
 
-namespace Fluorescent {
-
-}
-
-using namespace Fluorescent;
+int random(int min = 0, int max = 0);

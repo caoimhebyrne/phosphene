@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Fluorescent.h"
-
 template <typename T>
 class Optional {
 public:
