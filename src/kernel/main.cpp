@@ -56,18 +56,14 @@ void test_memory_management()
     auto address_a = MemoryManagement::instance().allocate(sizeof(int));
     uart.println("[test_memory_management] Allocated for `address_a` at {#}", address_a);
 
-    auto write_a = (int*)address_a;
-    *write_a = expected_a_value;
-
     uart.println("[test_memory_management]   -> Setting {#} = {i}", address_a, expected_a_value);
+    *(int*)address_a = expected_a_value;
 
     auto address_b = MemoryManagement::instance().allocate(sizeof(int));
     uart.println("[test_memory_management] Allocated for `address_b` at {#}", address_b);
 
-    auto write_b = (int*)address_b;
-    *write_b = expected_b_value;
-
     uart.println("[test_memory_management]   -> Setting {#} = {i}", address_b, expected_b_value);
+    *(int*)address_b = expected_b_value;
 
     uart.println("[test_memory_management] Values: {#} = {i}, {#} = {i}", address_a, *(int*)address_a, address_b, *(int*)address_b);
 
