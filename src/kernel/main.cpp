@@ -1,6 +1,6 @@
+#include "../fluorescent/Fluorescent.h"
 #include "Kernel.h"
 #include "MemoryManagement.h"
-#include "Random.h"
 #include "asm/CurrentELRegister.h"
 #include "asm/MainIdRegister.h"
 #include "io/UART.h"
@@ -86,10 +86,10 @@ void test_random_number_generation()
     auto uart = UART::instance();
     uart.println("[test_random_number_generation] Checking if the random number generator works...");
 
-    auto random_number_a = Random::instance()->get();
+    auto random_number_a = random(0, 1000);
     uart.println("[test_random_number_generation] random_number_a = {i}", random_number_a);
 
-    auto random_number_b = Random::instance()->get();
+    auto random_number_b = random(0, 10);
     uart.println("[test_random_number_generation] random_number_b = {i}", random_number_b);
 
     if (random_number_a == random_number_b) {
