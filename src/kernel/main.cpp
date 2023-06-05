@@ -95,6 +95,9 @@ void test_memory_management()
 
     uart.println("[test_memory_management] It appears that `free` works as expected!");
 
+    uart.println("[test_memory_management] Cleaning up...");
+    MemoryManagement::instance().free(address_b);
+
     uart.println("[test_memory_management] Checking if `free`ing an address and then `malloc`ing of the same size causes the old region to be re-used...");
 
     auto verification_address = MemoryManagement::instance().allocate(sizeof(int));
@@ -125,10 +128,34 @@ void test_memory_management()
 
     uart.println("[test_memory_management] Freeing {i} bytes caused {#} to be re-used after a free! Woohoo!", sizeof(int), final_address);
 
+    uart.println("[test_memory_management] Cleaning up...");
+    MemoryManagement::instance().free(verification_address);
+    MemoryManagement::instance().free(final_address);
+
+    uart.println("[test_memory_management] Checking if freeing a large region will cause it to be resized...");
+
     auto big_address = MemoryManagement::instance().allocate(512);
+    *(int*)big_address = 0x69;
+    uart.println("[test_memory_management] Allocated 512 bytes for big_address at {#}", big_address);
+
+    uart.println("[test_memory_management] Freeing big_address... ({#})", big_address);
     MemoryManagement::instance().free(big_address);
 
-    auto next_address = MemoryManagement::instance().allocate(16);
+    uart.println("[test_memory_management] Allocating 16 bytes for small_address...");
+    auto small_address = MemoryManagement::instance().allocate(16);
+    if (*(int*)small_address == 0x69) {
+        Processor::panic("big_address was not free'd correctly!");
+    }
+
+    uart.println("[test_memory_management] big_address = {#}, small_address = {#}", big_address, small_address);
+    if (big_address != small_address) {
+        Processor::panic("Large free region was not re-sized correctly!");
+    }
+
+    uart.println("[test_memory_management] It looks like the large region was resized accordingly!");
+
+    uart.println("[test_memory_management] Cleaning up...");
+    MemoryManagement::instance().free(small_address);
 }
 
 void test_random_number_generation()
