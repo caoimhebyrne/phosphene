@@ -21,6 +21,8 @@ public:
     void* allocate(size_t size);
     void free(void* pointer);
 
+    void print_stats();
+
 private:
     MemoryManagement()
     {
@@ -42,6 +44,9 @@ private:
     // Linked-list approach, see Region::next
     Region* m_first_region { nullptr };
     Optional<Region> m_last_allocated_region {};
+    u64 m_bytes_allocated = 0;
+    u64 m_bytes_freed = 0;
+    u64 m_bytes_reused = 0;
 };
 
 }

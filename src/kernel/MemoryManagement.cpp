@@ -20,12 +20,14 @@ void* MemoryManagement::allocate(size_t size)
         auto region = optional_region.get();
         UART::instance().println("[MemoryManagement] Reused {i} bytes. ({#} -> {#})", region.size, region.start, (u8*)region.start + region.size);
 
+        m_bytes_reused += region.size;
         return region.start;
     }
 
     auto region = this->allocate_new_region(size);
     region.is_free = false;
 
+    m_bytes_allocated += region.size;
     UART::instance().println("[MemoryManagement] Allocated {i} bytes. ({#} -> {#})", region.size, region.start, (u8*)region.start + region.size);
 
     return region.start;
@@ -55,6 +57,8 @@ void MemoryManagement::free(void* pointer)
     for (auto i = 0; i < region->size; i++) {
         *((u8*)region->start + i) = 0;
     }
+
+    m_bytes_freed += region->size;
 
     UART::instance().println("[MemoryManagement] Free'd {i} bytes. ({#} -> {#})", region->size, region->start, (u8*)region->start + region->size);
 }
@@ -145,11 +149,26 @@ Optional<Region> MemoryManagement::find_next_free_region(size_t size)
         // Overwrite a little bit of the header's data...
         region->size = size;
         region->next = (Region*)free_chunk_location;
+        region->is_free = false;
 
         return *region;
     }
 
     return {};
+}
+
+void MemoryManagement::print_stats()
+{
+    auto regions = 0;
+    for (auto region = m_first_region; region != nullptr; region = region->next) {
+        regions++;
+    }
+
+    UART::instance().println("[MemoryManagement] Statistics:");
+    UART::instance().println("                   - Total regions remaining:  {i}", regions);
+    UART::instance().println("                   - Total bytes free'd:       {i}", m_bytes_freed);
+    UART::instance().println("                   - Total bytes allocated:    {i}", m_bytes_allocated);
+    UART::instance().println("                   - Total bytes re-used:      {i}", m_bytes_reused);
 }
 
 }

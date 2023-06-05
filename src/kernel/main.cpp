@@ -155,7 +155,9 @@ void test_memory_management()
     uart.println("[test_memory_management] It looks like the large region was resized accordingly!");
 
     uart.println("[test_memory_management] Cleaning up...");
+
     MemoryManagement::instance().free(small_address);
+    MemoryManagement::instance().print_stats();
 }
 
 void test_random_number_generation()
