@@ -55,6 +55,8 @@ void MemoryManagement::free(void* pointer)
     for (auto i = 0; i < region->size; i++) {
         *((u8*)region->start + i) = 0;
     }
+
+    UART::instance().println("[MemoryManagement] Free'd {i} bytes. ({#} -> {#})", region->size, region->start, (u8*)region->start + region->size);
 }
 
 Region MemoryManagement::allocate_new_region(size_t size)
@@ -124,12 +126,12 @@ Optional<Region> MemoryManagement::find_next_free_region(size_t size)
         // If the region is the same size as our requirement, we can just adopt it!
         if (region->size == size) {
             region->is_free = false;
-            UART::instance().println("[MemoryManagement] Adopting region of {i} bytes.", size);
+            UART::instance().println("[MemoryManagement] Adopting region of {i} bytes...", size);
 
             return *region;
         }
 
-        UART::instance().println("[MemoryManagement] Shrinking region of {i} bytes to {i} bytes.", region->size, region->size - size);
+        UART::instance().println("[MemoryManagement] Shrinking region of {i} bytes to {i} bytes...", region->size, region->size - size);
 
         auto old_start = region->start;
         region->start = (u8*)region->start + size;
