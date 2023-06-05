@@ -133,20 +133,20 @@ Optional<Region> MemoryManagement::find_next_free_region(size_t size)
 
         UART::instance().println("[MemoryManagement] Shrinking region of {i} bytes to {i} bytes...", region->size, region->size - size);
 
-        auto old_start = region->start;
-        region->start = (u8*)region->start + size;
-        region->size = region->size - size;
-
-        auto allocated_region = Region {
-            .start = old_start,
-            .next = region,
+        // Adjust the old header, and write it at the end of the area for our new one
+        auto free_chunk_location = (u8*)region + sizeof(Region) + size;
+        *(Region*)free_chunk_location = Region {
+            .start = (u8*)region->start + size,
+            .next = region->next,
             .size = size,
-            .is_free = false,
+            .is_free = true
         };
 
-        // TODO: Find the region that was once pointing to `region` as `next`, and make it point to `allocated_region`.
+        // Overwrite a little bit of the header's data...
+        region->size = size;
+        region->next = (Region*)free_chunk_location;
 
-        return allocated_region;
+        return *region;
     }
 
     return {};
