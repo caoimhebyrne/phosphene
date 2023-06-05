@@ -9,7 +9,7 @@ struct Region {
     void* start;
 
     Region* next;
-        
+
     size_t size;
     bool is_free;
 };
@@ -35,7 +35,7 @@ private:
     }
 
     Region allocate_new_region(size_t size);
-    Region* find_next_free_region(size_t size);
+    Optional<Region> find_next_free_region(size_t size);
 
     bool is_region_invalid(Region region);
 
