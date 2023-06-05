@@ -13,6 +13,7 @@ public:
     // FIXME: Let's try to support moving values around.
     Optional(T& value)
         : m_value(value)
+        , m_is_set(true)
     {
     }
 
