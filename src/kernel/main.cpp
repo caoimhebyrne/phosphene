@@ -28,8 +28,8 @@ void main()
     // Our exception level should be 2 by default, this is known as the "Hypervisor" level.
     // TODO: In the future, we should drop from EL2 to EL1.
     auto exception_level = el_register.exception_level();
-    if (exception_level != ExceptionLevel::EL2) {
-        uart.println("ERROR: Expected exception level to be EL2, but it was EL{i}!", exception_level);
+    if (exception_level != ExceptionLevel::EL1) {
+        uart.println("ERROR: Expected exception level to be EL1, but it was EL{i}!", exception_level);
 
         // Our boot.S will just halt the CPU if we return from main()
         return;

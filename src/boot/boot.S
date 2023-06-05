@@ -9,16 +9,36 @@ _start:
     mrs     x0, mpidr_el1
     and     x0, x0, #3
 
-    // If the processor id is 0 (cbz), go to `entry`.
-    cbz     x0, entry
+    // If the processor id is 0 (cbz), go to `drop_to_el1`.
+    cbz     x0, drop_to_el1
 
     // Otherwise, halt the processor indefinately.
 halt:  
     wfe
     b       halt
 
-entry:  
-    // We are on the main processor.
+drop_to_el1:
+    // Allow SIMD and floating point registers to be accessed in EL1.
+    mov x0, #(0b11 << 20)     // 0b11 = This control does not cause execution of any instructions to be trapped.
+    msr cpacr_el1, x0
+
+    // Use aarch64 when executing in EL1.
+    mov x0, #(0b1 << 31)      // 0b1 = The Execution state for EL1 is AArch64.
+    msr hcr_el2, x0
+
+    // Set the aarch64 exception level.
+    mov x0, #(0b0101 << 0)    // 0b0101 = EL1h
+    msr spsr_el2, x0
+
+    // Go to the `entry` routine when in EL1 (after eret).
+    ldr x0, =el1_entry
+    msr elr_el2, x0
+
+    eret
+
+el1_entry:
+    // We should be in EL1 now!
+    // It doesn't really matter if we're not... our C code will complain pretty soon.
 
     // Set stack to start below our code.
     ldr     x0, =_start
