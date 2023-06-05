@@ -144,6 +144,8 @@ Optional<Region> MemoryManagement::find_next_free_region(size_t size)
             .is_free = false,
         };
 
+        // TODO: Find the region that was once pointing to `region` as `next`, and make it point to `allocated_region`.
+
         return allocated_region;
     }
 
