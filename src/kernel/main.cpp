@@ -2,8 +2,6 @@
 #include "Kernel.h"
 #include "MemoryManagement.h"
 #include "Processor.h"
-#include "asm/CurrentELRegister.h"
-#include "asm/MainIdRegister.h"
 #include "io/UART.h"
 
 namespace Kernel {
@@ -11,32 +9,23 @@ namespace Kernel {
 void main()
 {
     auto uart = UART::instance();
+    auto processor_info = Processor::get_info();
 
-    // Print out which Raspberry PI board we are on.
-    MainIdRegister id_register;
-    uart.println("[main] Board detected: {s}", id_register.part_number_as_string());
+    uart.println("[main] Running on exception level {i}", processor_info.exception_level);
+
+    // Our exception level should be 1, if it isn't, something has gone wrong in boot.S
+    if (processor_info.exception_level != ExceptionLevel::EL1) {
+        return Processor::panic("Unexpected exception level!");
+    }
+
+    uart.println("[main] Board detected: {s}", processor_info.name);
 
     // Our OS only supports the Pi3 and Pi4 at the moment.
-    if (id_register.part_number() != PartNumber::Pi3 && id_register.part_number() != PartNumber::Pi4) {
-        uart.println("ERROR: Unexpected Raspberry PI board revision!");
-
-        return;
+    if (processor_info.part_number != PartNumber::Pi3 && processor_info.part_number != PartNumber::Pi4) {
+        return Processor::panic("Unsupported Raspberry PI board revision!");
     }
 
-    CurrentELRegister el_register;
-
-    // Our exception level should be 2 by default, this is known as the "Hypervisor" level.
-    // TODO: In the future, we should drop from EL2 to EL1.
-    auto exception_level = el_register.exception_level();
-    if (exception_level != ExceptionLevel::EL1) {
-        uart.println("ERROR: Expected exception level to be EL1, but it was EL{i}!", exception_level);
-
-        // Our boot.S will just halt the CPU if we return from main()
-        return;
-    }
-
-    uart.println("[main] Running on exception level {i}", exception_level);
-
+    // TODO: Move these somewhere else, and maybe have a "testing mode"?
     test_memory_management();
     test_random_number_generation();
 

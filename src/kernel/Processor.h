@@ -1,5 +1,7 @@
 #pragma once
 
+#include "asm/CurrentELRegister.h"
+#include "asm/MainIdRegister.h"
 #include "io/UART.h"
 
 namespace Kernel {
@@ -9,6 +11,13 @@ public:
     struct StackFrame {
         struct StackFrame* previous_frame;
         size_t last_register;
+    };
+
+    struct Info {
+        const char* name;
+
+        PartNumber part_number;
+        ExceptionLevel exception_level;
     };
 
     static inline void halt()
@@ -32,6 +41,18 @@ public:
         }
 
         halt();
+    }
+
+    static Info get_info()
+    {
+        MainIdRegister id_register;
+        CurrentELRegister el_register;
+
+        return {
+            .name = id_register.part_number_as_string(),
+            .part_number = id_register.part_number(),
+            .exception_level = el_register.exception_level(),
+        };
     }
 };
 
