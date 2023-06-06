@@ -1,4 +1,5 @@
 #include "MemoryManagement.h"
+#include "Kernel.h"
 #include "Processor.h"
 #include "io/UART.h"
 
@@ -18,7 +19,10 @@ void* MemoryManagement::allocate(size_t size)
     auto optional_region = this->find_next_free_region(size);
     if (optional_region) {
         auto region = optional_region.get();
-        UART::instance().println("[MemoryManagement] Reused {i} bytes. ({#} -> {#})", region.size, region.start, (u8*)region.start + region.size);
+
+        if (MEMORY_MANAGEMENT_DEBUG || MEMORY_MANAGEMENT_ALLOCATION_DEBUG) {
+            UART::instance().println("[MemoryManagement] Reused {i} bytes. ({#} -> {#})", region.size, region.start, (u8*)region.start + region.size);
+        }
 
         m_bytes_reused += region.size;
         return region.start;
@@ -28,7 +32,10 @@ void* MemoryManagement::allocate(size_t size)
     region.is_free = false;
 
     m_bytes_allocated += region.size;
-    UART::instance().println("[MemoryManagement] Allocated {i} bytes. ({#} -> {#})", region.size, region.start, (u8*)region.start + region.size);
+
+    if (MEMORY_MANAGEMENT_DEBUG || MEMORY_MANAGEMENT_ALLOCATION_DEBUG) {
+        UART::instance().println("[MemoryManagement] Allocated {i} bytes. ({#} -> {#})", region.size, region.start, (u8*)region.start + region.size);
+    }
 
     return region.start;
 }
@@ -60,7 +67,9 @@ void MemoryManagement::free(void* pointer)
 
     m_bytes_freed += region->size;
 
-    UART::instance().println("[MemoryManagement] Free'd {i} bytes. ({#} -> {#})", region->size, region->start, (u8*)region->start + region->size);
+    if (MEMORY_MANAGEMENT_DEBUG || MEMORY_MANAGEMENT_ALLOCATION_DEBUG) {
+        UART::instance().println("[MemoryManagement] Free'd {i} bytes. ({#} -> {#})", region->size, region->start, (u8*)region->start + region->size);
+    }
 }
 
 Region MemoryManagement::allocate_new_region(size_t size)
@@ -75,7 +84,10 @@ Region MemoryManagement::allocate_new_region(size_t size)
         // FIXME: Why wasn't region.end working here?
         start_position = (int*)last_allocated_region.start + sizeof(Region) + last_allocated_region.size;
     } else {
-        UART::instance().println("[MemoryManagement] Last region was invalid! Starting from the end of the BSS.");
+        if (MEMORY_MANAGEMENT_DEBUG) {
+            UART::instance().println("[MemoryManagement] Last region was invalid! Starting from the end of the BSS.");
+        }
+
         start_position = (int*)&__bss_end;
     }
 
@@ -111,7 +123,9 @@ Region MemoryManagement::allocate_new_region(size_t size)
 Optional<Region> MemoryManagement::find_next_free_region(size_t size)
 {
     if (m_first_region == nullptr) {
-        UART::instance().println("[MemoryManagement] Failed to find existing region to adopt as m_first_region was null!");
+        if (MEMORY_MANAGEMENT_DEBUG) {
+            UART::instance().println("[MemoryManagement] Failed to find existing region to adopt as m_first_region was null!");
+        }
         return {};
     }
 
@@ -120,7 +134,9 @@ Optional<Region> MemoryManagement::find_next_free_region(size_t size)
             continue;
         }
 
-        UART::instance().println("[MemoryManagement] Checking if the region is suitable: \\{ start = {#}, next = {#}, size = {i}, is_free = {b} \\}...", region->start, region->next, region->size, region->is_free);
+        if (MEMORY_MANAGEMENT_DEBUG) {
+            UART::instance().println("[MemoryManagement] Checking if the region is suitable: \\{ start = {#}, next = {#}, size = {i}, is_free = {b} \\}...", region->start, region->next, region->size, region->is_free);
+        }
 
         // If this region is too small, we can't use it for anything.
         if (region->size < size) {
@@ -130,12 +146,17 @@ Optional<Region> MemoryManagement::find_next_free_region(size_t size)
         // If the region is the same size as our requirement, we can just adopt it!
         if (region->size == size) {
             region->is_free = false;
-            UART::instance().println("[MemoryManagement] Adopting region of {i} bytes...", size);
+
+            if (MEMORY_MANAGEMENT_DEBUG) {
+                UART::instance().println("[MemoryManagement] Adopting region of {i} bytes...", size);
+            }
 
             return *region;
         }
 
-        UART::instance().println("[MemoryManagement] Shrinking region of {i} bytes to {i} bytes...", region->size, region->size - size);
+        if (MEMORY_MANAGEMENT_DEBUG) {
+            UART::instance().println("[MemoryManagement] Shrinking region of {i} bytes to {i} bytes...", region->size, region->size - size);
+        }
 
         // Adjust the old header, and write it at the end of the area for our new one
         auto free_chunk_location = (u8*)region + sizeof(Region) + size;
